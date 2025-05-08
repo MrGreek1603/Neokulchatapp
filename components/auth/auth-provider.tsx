@@ -28,72 +28,77 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const supabase = createClient();
-  
+
   // Initial session check
   useEffect(() => {
     const getSession = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
         const { data } = await supabase
           .from("profiles")
           .select("*")
           .eq("id", session.user.id)
           .single();
-        
+
         setProfile(data);
       }
-      
+
       setLoading(false);
     };
-    
+
     getSession();
-    
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
         refreshProfile();
       } else {
         setProfile(null);
       }
     });
-    
+
     return () => {
       subscription.unsubscribe();
     };
   }, []);
-  
+
   // Redirect based on auth state
   useEffect(() => {
     if (loading) return;
-    
-    const isAuthRoute = pathname === '/login' || pathname === '/signup';
-    const isDashboardRoute = pathname.startsWith('/dashboard');
-    
+
+    const isAuthRoute = pathname === "/login" || pathname === "/signup";
+    const isDashboardRoute = pathname.startsWith("/app");
+
     if (user && isAuthRoute) {
-      router.push('/dashboard');
+      router.push("/app");
     } else if (!user && isDashboardRoute) {
-      router.push('/login');
+      router.push("/login");
     }
   }, [user, loading, pathname, router]);
-  
+
   const refreshProfile = async () => {
     if (!user) return;
-    
+
     const { data } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", user.id)
       .single();
-    
+
     setProfile(data);
   };
-  
+
   const signUp = async (email: string, password: string) => {
     try {
       setLoading(true);
@@ -101,17 +106,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email,
         password,
       });
-      
+
       if (error) throw error;
       toast.success("Account created! You can now sign in.");
-      router.push('/login');
+      router.push("/login");
     } catch (error: any) {
       toast.error(error.message || "Failed to sign up");
     } finally {
       setLoading(false);
     }
   };
-  
+
   const signIn = async (email: string, password: string) => {
     try {
       setLoading(true);
@@ -119,25 +124,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email,
         password,
       });
-      
+
       if (error) throw error;
-      router.push('/dashboard');
+      router.push("/app");
     } catch (error: any) {
       toast.error(error.message || "Failed to sign in");
     } finally {
       setLoading(false);
     }
   };
-  
+
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
-      router.push('/');
+      router.push("/");
     } catch (error: any) {
       toast.error(error.message || "Failed to sign out");
     }
   };
-  
+
   return (
     <AuthContext.Provider
       value={{
