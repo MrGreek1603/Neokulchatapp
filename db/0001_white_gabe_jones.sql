@@ -1,0 +1,1 @@
+ALTER TABLE "group_membership" ALTER COLUMN "id" SET DEFAULT gen_random_uuid();
