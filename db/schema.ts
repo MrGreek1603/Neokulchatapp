@@ -3,7 +3,7 @@ import {
   foreignKey,
   uuid,
   text,
-  timestamp,
+  timestamp, // Using timestamptz instead of timestamp
   jsonb,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
@@ -17,7 +17,7 @@ export const chats = pgTable(
     groupId: uuid("group_id"),
     message: text(),
     attachment: text(),
-    createdAt: timestamp("created_at", { mode: "string" })
+    createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
       .defaultNow()
       .notNull(),
   },
@@ -44,6 +44,7 @@ export const group = pgTable("group", {
   id: uuid().defaultRandom().primaryKey().notNull(),
   name: text().notNull(),
   createdAt: timestamp({ mode: "string" }).defaultNow().notNull(),
+  visibility: text().default("private").notNull(),
 });
 
 export const groupMembership = pgTable(
@@ -53,6 +54,7 @@ export const groupMembership = pgTable(
     userId: uuid("user_id").notNull(),
     groupId: uuid("group_id").notNull(),
     joinedAt: timestamp("joined_at", { mode: "string" }).defaultNow().notNull(),
+    role: text().default("user"),
   },
   (table) => [
     foreignKey({
@@ -64,6 +66,25 @@ export const groupMembership = pgTable(
       columns: [table.groupId],
       foreignColumns: [group.id],
       name: "group_membership_group_id_group_id_fk",
+    }),
+  ],
+);
+
+export const GroupJoinRequests = pgTable(
+  "group_join_request",
+  {
+    id: uuid().defaultRandom().primaryKey().notNull(),
+    user: uuid().notNull(),
+    groupId: uuid("group_id").notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.user],
+      foreignColumns: [user.id],
+    }),
+    foreignKey({
+      columns: [table.groupId],
+      foreignColumns: [group.id],
     }),
   ],
 );

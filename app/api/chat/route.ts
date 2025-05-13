@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
         groupId: groupId || null,
         message,
         attachment: attachment || null,
-        createdAt: new Date(),
+        createdAt: new Date().toISOString(),
       })
       .returning({
         id: chats.id,
