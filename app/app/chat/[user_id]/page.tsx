@@ -85,7 +85,7 @@ export default function PrivateChatsPage({
 
         <div className="flex flex-col gap-3">
           <AnimatePresence>
-            {chats?.map((chat) => (
+            {chats?.map((chat, index) => (
               <motion.div
                 key={chat.id}
                 className={`max-w-[70%] px-4 py-2 rounded-xl shadow ${
@@ -93,10 +93,14 @@ export default function PrivateChatsPage({
                     ? "self-end bg-blue-500 text-white"
                     : "self-start bg-gray-100 text-gray-900"
                 }`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.2, ease: "easeInOut" }}
+                initial={{ opacity: 0, y: 20, filter: "blur(4px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                exit={{ opacity: 0, y: -20, filter: "blur(4px)" }}
+                transition={{
+                  duration: 0.7,
+                  ease: "anticipate",
+                  delay: index * 0.07, // Stagger the messages with 0.1s delay
+                }}
               >
                 <p className="text-sm">{chat.message}</p>
                 <span className="text-xs mt-1 block text-muted-foreground">
