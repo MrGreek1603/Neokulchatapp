@@ -47,6 +47,25 @@ export const group = pgTable("group", {
   visibility: text().default("private").notNull(),
 });
 
+export const groupInvite = pgTable(
+  "group_invite",
+  {
+    code: text()
+      .notNull()
+      .unique()
+      .default(
+        sql`substring(md5(random()::text), 1, 8)`, // Random 8-digit alphanumeric code
+      ),
+    group: uuid().notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.group],
+      foreignColumns: [group.id],
+    }),
+  ],
+);
+
 export const groupMembership = pgTable(
   "group_membership",
   {
