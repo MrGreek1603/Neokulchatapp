@@ -10,40 +10,66 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/components/auth/auth-provider";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-
+import axios from "axios";
 export default function SignupPage() {
   const { signUp, loading } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const { register, handleSubmit, formState: { errors }, watch, setError } = useForm({
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    watch,
+    setError,
+  } = useForm({
     defaultValues: {
+      name: "",
       email: "",
       password: "",
       confirmPassword: "",
     },
   });
-  
+
   const password = watch("password");
-  
-  const onSubmit = async (data: { email: string; password: string; confirmPassword: string }) => {
+
+  const onSubmit = async (data: {
+    name: string;
+    email: string;
+    password: string;
+    confirmPassword: string;
+  }) => {
     if (data.password !== data.confirmPassword) {
-      setError("confirmPassword", { 
-        type: "manual", 
-        message: "Passwords do not match" 
+      setError("confirmPassword", {
+        type: "manual",
+        message: "Passwords do not match",
       });
       return;
     }
-    
+
     try {
       setIsSubmitting(true);
-      await signUp(data.email, data.password);
+      const result = await signUp(data.email, data.password);
+      if (!result) return;
+
+      if (result.user) {
+        const res = await axios.post("/api/users", {
+          id: result.user.id,
+          name: data.name,
+          email: data.email,
+        });
+
+        toast.success("Account created successfully!");
+      } else {
+        toast.error("Failed to create account");
+      }
     } catch (error) {
       console.error(error);
+      toast.error("An error occurred while creating your account");
     } finally {
       setIsSubmitting(false);
     }
   };
-  
+
   return (
     <div className="flex min-h-screen flex-col">
       <div className="flex flex-1 flex-col items-center justify-center px-4 py-12">
@@ -62,9 +88,25 @@ export default function SignupPage() {
               Create an account to start chatting
             </p>
           </div>
-          
+
           <div className="space-y-4">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  placeholder="Your name"
+                  {...register("name", {
+                    required: "Name is required",
+                  })}
+                />
+                {errors.name && (
+                  <p className="text-sm text-destructive">
+                    {errors.name.message}
+                  </p>
+                )}
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -72,7 +114,7 @@ export default function SignupPage() {
                   placeholder="your.email@example.com"
                   type="email"
                   autoComplete="email"
-                  {...register("email", { 
+                  {...register("email", {
                     required: "Email is required",
                     pattern: {
                       value: /\S+@\S+\.\S+/,
@@ -81,17 +123,19 @@ export default function SignupPage() {
                   })}
                 />
                 {errors.email && (
-                  <p className="text-sm text-destructive">{errors.email.message}</p>
+                  <p className="text-sm text-destructive">
+                    {errors.email.message}
+                  </p>
                 )}
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
                   type="password"
                   autoComplete="new-password"
-                  {...register("password", { 
+                  {...register("password", {
                     required: "Password is required",
                     minLength: {
                       value: 8,
@@ -100,31 +144,40 @@ export default function SignupPage() {
                   })}
                 />
                 {errors.password && (
-                  <p className="text-sm text-destructive">{errors.password.message}</p>
+                  <p className="text-sm text-destructive">
+                    {errors.password.message}
+                  </p>
                 )}
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm Password</Label>
                 <Input
                   id="confirmPassword"
                   type="password"
                   autoComplete="new-password"
-                  {...register("confirmPassword", { 
+                  {...register("confirmPassword", {
                     required: "Please confirm your password",
-                    validate: value => value === password || "Passwords do not match"
+                    validate: (value) =>
+                      value === password || "Passwords do not match",
                   })}
                 />
                 {errors.confirmPassword && (
-                  <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
+                  <p className="text-sm text-destructive">
+                    {errors.confirmPassword.message}
+                  </p>
                 )}
               </div>
-              
+
               <motion.div
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={isSubmitting}
+                >
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -136,7 +189,7 @@ export default function SignupPage() {
                 </Button>
               </motion.div>
             </form>
-            
+
             <div className="text-center text-sm">
               <p className="text-muted-foreground">
                 Already have an account?{" "}

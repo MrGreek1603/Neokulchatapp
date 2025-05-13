@@ -7,11 +7,16 @@ import { Session, User } from "@supabase/supabase-js";
 import { Profile } from "@/types/database";
 import { toast } from "sonner";
 
+type SignUpResponse = {
+  user: User | null;
+  session: Session | null;
+};
+
 type AuthContextType = {
   user: User | null;
   profile: Profile | null;
   session: Session | null;
-  signUp: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string) => Promise<SignUpResponse | null>; // Updated return type
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   loading: boolean;
@@ -99,19 +104,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setProfile(data);
   };
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (
+    email: string,
+    password: string,
+  ): Promise<SignUpResponse | null> => {
     try {
       setLoading(true);
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
       });
-
       if (error) throw error;
-      toast.success("Account created! You can now sign in.");
-      router.push("/login");
+      return data; // Now returning the correct data structure
     } catch (error: any) {
       toast.error(error.message || "Failed to sign up");
+      return null; // Return null in case of error
     } finally {
       setLoading(false);
     }

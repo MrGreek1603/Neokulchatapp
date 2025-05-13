@@ -15,6 +15,27 @@
       "when": 1746816348970,
       "tag": "0001_white_gabe_jones",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1746987473630,
+      "tag": "0002_simple_doorman",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1747124020651,
+      "tag": "0003_brainy_darkstar",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1747129712504,
+      "tag": "0004_ancient_masked_marvel",
+      "breakpoints": true
     }
   ]
 }

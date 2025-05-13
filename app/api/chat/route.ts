@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db"; // Assuming you have a dripping DB instance set up
-import { chats, user } from "@/db/schema"; // Import the schema
+import { db } from "@/lib/db";
+import { chats, user } from "@/db/schema";
 import { eq, and, or } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core"; // Import the alias function
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const userId = searchParams.get("userId"); // ID of the requesting user
-    const chatWith = searchParams.get("chatWith"); // ID of the other user (for 1:1 chat)
-    const groupId = searchParams.get("groupId"); // Group ID (for group chat)
+    const userId = searchParams.get("userId");
+    const chatWith = searchParams.get("chatWith");
+    const groupId = searchParams.get("groupId");
 
     if (!userId) {
       return NextResponse.json(
@@ -19,6 +20,9 @@ export async function GET(req: NextRequest) {
 
     let chatResults;
 
+    // Create an alias for the user table
+    const fromUser = alias(user, "fromUser");
+
     if (groupId) {
       // Fetch group chats
       chatResults = await db
@@ -28,12 +32,12 @@ export async function GET(req: NextRequest) {
           attachment: chats.attachment,
           createdAt: chats.createdAt,
           chatFrom: {
-            id: user.id,
-            name: user.name,
+            id: fromUser.id,
+            name: fromUser.name,
           },
         })
         .from(chats)
-        .leftJoin(user, eq(chats.chatFrom, user.id))
+        .leftJoin(fromUser, eq(chats.chatFrom, fromUser.id))
         .where(eq(chats.groupId, groupId))
         .orderBy(chats.createdAt);
     } else if (chatWith) {
@@ -45,18 +49,16 @@ export async function GET(req: NextRequest) {
           attachment: chats.attachment,
           createdAt: chats.createdAt,
           chatFrom: {
-            id: user.id,
-            name: user.name,
+            id: fromUser.id,
+            name: fromUser.name,
           },
         })
         .from(chats)
-        .leftJoin(user, eq(chats.chatFrom, user.id))
+        .leftJoin(fromUser, eq(chats.chatFrom, fromUser.id))
         .where(
-          and(
-            or(
-              and(eq(chats.chatFrom, userId), eq(chats.chatTo, chatWith)),
-              and(eq(chats.chatFrom, chatWith), eq(chats.chatTo, userId)),
-            ),
+          or(
+            and(eq(chats.chatFrom, userId), eq(chats.chatTo, chatWith)),
+            and(eq(chats.chatFrom, chatWith), eq(chats.chatTo, userId)),
           ),
         )
         .orderBy(chats.createdAt);
@@ -71,7 +73,11 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     console.error("Error fetching chats:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      {
+        error:
+          "Error fetching chats: " +
+          (error instanceof Error ? error.message : String(error)),
+      },
       { status: 500 },
     );
   }

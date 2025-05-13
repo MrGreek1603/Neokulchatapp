@@ -1,6 +1,9 @@
-import { redirect } from "next/navigation";
+"use client";
+
+import { useAuth } from "@/components/auth/auth-provider";
+import axios from "axios";
+import { useEffect, useState } from "react";
 
 export default function DashboardPage() {
-  // redirect("/app/friends");
-  return <>hlll</>;
+  return <main></main>;
 }

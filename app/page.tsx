@@ -1,10 +1,26 @@
-import Link from 'next/link';
-import { buttonVariants } from '@/components/ui/button';
-import { ArrowRight, MessageSquare, Users, Layout } from 'lucide-react';
-import { HeroSection } from '@/components/landing/hero-section';
-import { FeatureSection } from '@/components/landing/feature-section';
+"use client";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
+import { ArrowRight, MessageSquare, Users, Layout } from "lucide-react";
+import { HeroSection } from "@/components/landing/hero-section";
+import { FeatureSection } from "@/components/landing/feature-section";
+import { useAuth } from "@/components/auth/auth-provider";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const { session } = useAuth();
+  const router = useRouter();
+  useEffect(() => {
+    if (
+      typeof window !== "undefined" &&
+      session?.expires_at &&
+      session.expires_at * 1000 > Date.now()
+    ) {
+      router.push("/app");
+    }
+  }, [session, router]);
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -14,27 +30,22 @@ export default function Home() {
             <span>ChatForum</span>
           </div>
           <div className="flex items-center gap-4">
-            <Link 
-              href="/login" 
+            <Link
+              href="/login"
               className={buttonVariants({ variant: "ghost", size: "sm" })}
             >
               Login
             </Link>
-            <Link 
-              href="/signup" 
-              className={buttonVariants({ size: "sm" })}
-            >
+            <Link href="/signup" className={buttonVariants({ size: "sm" })}>
               Sign Up
             </Link>
           </div>
         </div>
       </header>
-      
       <main className="flex-1">
         <HeroSection />
         <FeatureSection />
       </main>
-      
       <footer className="border-t border-border/40 py-6">
         <div className="container flex flex-col items-center justify-between gap-4 md:flex-row">
           <div className="flex items-center gap-2 text-sm">
