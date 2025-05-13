@@ -1,0 +1,1 @@
+ALTER TABLE "group_invite" ALTER COLUMN "code" SET DEFAULT substring(md5(random()::text), 1, 8);
