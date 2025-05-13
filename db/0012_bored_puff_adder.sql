@@ -1,0 +1,1 @@
+ALTER TABLE "group_invite" ADD CONSTRAINT "group_invite_created_by_user_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."user"("id") ON DELETE no action ON UPDATE no action;

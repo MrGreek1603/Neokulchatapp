@@ -5,8 +5,21 @@ import {
   text,
   timestamp, // Using timestamptz instead of timestamp
   jsonb,
+  integer,
+  pgEnum,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
+
+export const groupVisibilityEnum = pgEnum("group_visibility", [
+  "public",
+  "private",
+]);
+export const groupRoleEnum = pgEnum("group_role", ["user", "admin"]);
+export const groupJoinMethodEnum = pgEnum("group_join_method", [
+  "open",
+  "request",
+  "invite",
+]);
 
 export const chats = pgTable(
   "chats",
@@ -44,7 +57,8 @@ export const group = pgTable("group", {
   id: uuid().defaultRandom().primaryKey().notNull(),
   name: text().notNull(),
   createdAt: timestamp({ mode: "string" }).defaultNow().notNull(),
-  visibility: text().default("private").notNull(),
+  visibility: groupVisibilityEnum("visibility").default("private").notNull(),
+  joinMethod: groupJoinMethodEnum("join_method").default("invite").notNull(),
 });
 
 export const groupInvite = pgTable(
@@ -55,13 +69,22 @@ export const groupInvite = pgTable(
       .unique()
       .default(
         sql`substring(md5(random()::text), 1, 8)`, // Random 8-digit alphanumeric code
-      ),
+      )
+      .primaryKey(),
     group: uuid().notNull(),
+    createdBy: uuid("created_by"),
+    expiresAt: timestamp("expires_at", { mode: "string" }),
+    maxUses: integer("max_uses"),
+    usedCount: integer("used_count").default(0),
   },
   (table) => [
     foreignKey({
       columns: [table.group],
       foreignColumns: [group.id],
+    }),
+    foreignKey({
+      columns: [table.createdBy],
+      foreignColumns: [user.id],
     }),
   ],
 );
@@ -73,7 +96,7 @@ export const groupMembership = pgTable(
     userId: uuid("user_id").notNull(),
     groupId: uuid("group_id").notNull(),
     joinedAt: timestamp("joined_at", { mode: "string" }).defaultNow().notNull(),
-    role: text().default("user"),
+    role: groupRoleEnum("role").default("user").notNull(),
   },
   (table) => [
     foreignKey({

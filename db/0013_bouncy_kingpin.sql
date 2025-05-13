@@ -1,0 +1,1 @@
+ALTER TABLE "group_invite" ADD PRIMARY KEY ("code");

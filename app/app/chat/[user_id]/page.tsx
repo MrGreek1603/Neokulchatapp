@@ -160,24 +160,25 @@ export default function PrivateChatsPage({
   };
 
   return (
-    <div className="p-6 max-w-6xl  mx-auto space-y-6 flex flex-col justify-between h-full">
-      <div>
-        {JSON.stringify(
-          format(
-            toZonedTime(
-              new Date(),
-              Intl.DateTimeFormat().resolvedOptions().timeZone,
-            ),
-            "hh:mm a",
-          ),
-        )}
-        <div className="text-sm text-muted-foreground">
-          Chatting with: {friend?.name}
-        </div>
+    <div className="p-1 max-w-6xl relative mx-auto flex flex-col h-dvh">
+      {/* <img
+        src="https://i.pinimg.com/736x/a4/ba/48/a4ba48877579d057e340aec51a5388c8.jpg"
+        className="absolute inset-0 w-full h-full -z-10 object-cover"
+      /> */}
+      <div className="sticky top-0 z-10 bg-background py-4 text-sm text-muted-foreground flex justify-between">
+        Chatting with: {friend?.name}
+        <a
+          href={"/app/chat/" + params.user_id + "/manage"}
+          className="underline hover:text-white"
+        >
+          Manage Group
+        </a>
+      </div>
 
-        <div className="flex flex-col gap-3">
+      <div className="flex-1 overflow-y-auto px-6 py-2 flex flex-col gap-3">
+        {chats?.length ? (
           <AnimatePresence>
-            {chats?.map((chat, index) => (
+            {chats.map((chat) => (
               <motion.div
                 key={chat.id}
                 className={`max-w-[70%] min-w-[80px] px-2.5 py-1.5 rounded-lg shadow-sm ${
@@ -188,10 +189,7 @@ export default function PrivateChatsPage({
                 initial={{ opacity: 0, y: 20, filter: "blur(4px)" }}
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 exit={{ opacity: 0, y: -20, filter: "blur(4px)" }}
-                transition={{
-                  duration: 0.7,
-                  ease: "anticipate",
-                }}
+                transition={{ duration: 0.7, ease: "anticipate" }}
               >
                 <div className="flex flex-col">
                   {isGroup && chat.chatFrom.id !== user?.id && (
@@ -211,10 +209,17 @@ export default function PrivateChatsPage({
               </motion.div>
             ))}
           </AnimatePresence>
-        </div>
+        ) : (
+          <div className="flex-1 flex items-center justify-center text-muted-foreground text-center text-sm min-h-[300px]">
+            <span>
+              👋 Say hi!
+              <br />
+              It’s suspiciously quiet here...
+            </span>
+          </div>
+        )}
       </div>
-
-      <div className="*:not-first:mt-2">
+      <div className="shrink-0 p-4 border-t border-border">
         <div className="flex gap-2">
           <Input
             id={inputId}
