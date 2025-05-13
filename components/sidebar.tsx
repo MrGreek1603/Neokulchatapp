@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "./auth/auth-provider";
 import { Button } from "./ui/button";
 import { useRouter } from "next/navigation";
-import { LogOut, Plus } from "lucide-react";
+import { LogOut, Plus, UserPlus } from "lucide-react";
 
 function UserChat({
   user,
@@ -44,8 +44,10 @@ function UserChat({
 
 export function Sidebar() {
   const { signOut, user } = useAuth();
-  const [showPopup, setShowPopup] = useState(false);
+  const [showGroupPopup, setShowGroupPopup] = useState(false);
+  const [showFriendPopup, setShowFriendPopup] = useState(false);
   const [groupId, setGroupId] = useState("");
+  const [friendQuery, setFriendQuery] = useState("");
 
   return (
     <>
@@ -56,11 +58,20 @@ export function Sidebar() {
         </div>
 
         <div className="flex flex-col gap-2 items-center">
-          {/* + Button */}
+          {/* Add Friend Button */}
           <Button
             size="sm"
             className="rounded-full h-12 w-12"
-            onClick={() => setShowPopup(true)}
+            onClick={() => setShowFriendPopup(true)}
+          >
+            <UserPlus />
+          </Button>
+
+          {/* + Button for Group */}
+          <Button
+            size="sm"
+            className="rounded-full h-12 w-12"
+            onClick={() => setShowGroupPopup(true)}
           >
             <Plus />
           </Button>
@@ -76,8 +87,8 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* Centered Dark-Themed Popup */}
-      {showPopup && (
+      {/* Group ID Popup */}
+      {showGroupPopup && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-neutral-900 text-white p-6 rounded-lg shadow-lg w-[90%] max-w-sm">
             <h2 className="text-lg font-semibold mb-4">Enter Group ID</h2>
@@ -92,12 +103,40 @@ export function Sidebar() {
               <Button
                 variant="outline"
                 className="border-neutral-600 text-neutral-300 hover:bg-neutral-800"
-                onClick={() => setShowPopup(false)}
+                onClick={() => setShowGroupPopup(false)}
               >
                 Cancel
               </Button>
               <Button className="bg-white text-black hover:bg-gray-300">
                 Submit
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Friend Popup */}
+      {showFriendPopup && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-neutral-900 text-white p-6 rounded-lg shadow-lg w-[90%] max-w-sm">
+            <h2 className="text-lg font-semibold mb-4">Search Friend</h2>
+            <input
+              type="text"
+              placeholder="Enter name or email"
+              value={friendQuery}
+              onChange={(e) => setFriendQuery(e.target.value)}
+              className="w-full p-2 rounded bg-neutral-800 border border-neutral-700 placeholder:text-neutral-400 text-white"
+            />
+            <div className="flex justify-end gap-2 mt-4">
+              <Button
+                variant="outline"
+                className="border-neutral-600 text-neutral-300 hover:bg-neutral-800"
+                onClick={() => setShowFriendPopup(false)}
+              >
+                Cancel
+              </Button>
+              <Button className="bg-white text-black hover:bg-gray-300">
+                Search
               </Button>
             </div>
           </div>
