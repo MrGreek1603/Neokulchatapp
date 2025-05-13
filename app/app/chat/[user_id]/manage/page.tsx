@@ -40,12 +40,22 @@ interface InviteFormData {
   maxUses: number;
 }
 
+interface Invite {
+  code: string;
+  group: string;
+  createdBy: string;
+  expiresAt: string;
+  maxUses: number;
+  usedCount: number;
+}
 export default function GroupMembersPage({ params }: PageParams) {
   const { user } = useAuth();
   const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
   const [groupPendingMembers, setGroupPendingMembers] = useState<GroupMember[]>(
     [],
   );
+
+  const [activeInvites, setActiveInvites] = useState<Invite[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [inviteFormData, setInviteFormData] = useState<InviteFormData>({
     duration: "1",
@@ -71,6 +81,9 @@ export default function GroupMembersPage({ params }: PageParams) {
       }
     };
 
+    axios
+      .get("/api/groups/invite", { params: { groupId } })
+      .then((resp) => setActiveInvites(resp.data));
     fetchGroupMembers();
   }, [groupId]);
 
@@ -218,6 +231,20 @@ export default function GroupMembersPage({ params }: PageParams) {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+      </div>
+      <div>
+        INVITES
+        {activeInvites && activeInvites.length > 0 ? (
+          activeInvites.map((invite) => (
+            <div key={invite.code} className="p-4 border rounded-md">
+              <p>Code: {invite.code}</p>
+              <p>Expires at: {new Date(invite.expiresAt).toLocaleString()}</p>
+              <p>Max Uses: {invite.maxUses}</p>
+            </div>
+          ))
+        ) : (
+          <p>No active invites yet.</p>
+        )}
       </div>
 
       <h1 className="text-3xl font-semibold mb-8 text-center">Group Members</h1>
