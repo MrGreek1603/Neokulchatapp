@@ -1,14 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { group, groupMembership, user } from "@/db/schema";
+import { GroupJoinRequests, group, groupMembership, user } from "@/db/schema";
 import { DrizzleError, and, eq } from "drizzle-orm";
 
 // GET users in a group
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const groupId = searchParams.get("groupId");
-  if (!groupId)
+  const pending = searchParams.get("pending") === "true";
+
+  if (!groupId) {
     return NextResponse.json({ error: "Missing groupId" }, { status: 400 });
+  }
+
+  if (pending) {
+    const pendingRequests = await db
+      .select({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      })
+      .from(GroupJoinRequests)
+      .innerJoin(user, eq(GroupJoinRequests.user, user.id))
+      .where(eq(GroupJoinRequests.groupId, groupId));
+
+    return NextResponse.json(pendingRequests);
+  }
 
   const members = await db
     .select({
@@ -21,7 +38,7 @@ export async function GET(req: NextRequest) {
     .innerJoin(user, eq(groupMembership.userId, user.id))
     .where(eq(groupMembership.groupId, groupId));
 
-  return NextResponse.json(members.map((m) => m));
+  return NextResponse.json(members);
 }
 
 // POST join group

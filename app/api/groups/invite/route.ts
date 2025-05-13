@@ -20,11 +20,11 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const groupId = searchParams.get("groupId");
-  const createdBy = searchParams.get("userId");
+  const { groupId, createdBy, expiresAt, maxUses } = await req.json();
+  // const groupId = searchParams.get("groupId");
+  // const createdBy = searchParams.get("userId");
 
-  if (!groupId || !createdBy) {
+  if (!groupId || !createdBy || !expiresAt || !maxUses) {
     return NextResponse.json(
       { error: "Missing groupId or userId" },
       { status: 400 },
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
 
   const [invite] = await db
     .insert(groupInvite)
-    .values({ group: groupId, createdBy })
+    .values({ group: groupId, createdBy, expiresAt, maxUses })
     .returning();
 
   return NextResponse.json(invite);
