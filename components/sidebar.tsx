@@ -42,9 +42,9 @@ function UserChat({
         <>
           {user.friendName.split(" ").length > 1
             ? user.friendName
-                .split(" ")
-                .map((x) => x[0])
-                .join("")
+              .split(" ")
+              .map((x) => x[0])
+              .join("")
             : user.friendName.slice(0, 3)}
         </>
       )}
@@ -82,9 +82,9 @@ function GroupChat({
       <>
         {group.group.name.split(" ").length > 1
           ? group.group.name
-              .split(" ")
-              .map((x) => x[0])
-              .join("")
+            .split(" ")
+            .map((x) => x[0])
+            .join("")
           : group.group.name.slice(0, 3)}
       </>
     </button>
@@ -110,31 +110,31 @@ export function Sidebar() {
   );
   const [myFriends, setMyFriends] = useState<
     | {
-        friendId: string;
-        friendName: string;
-        friendEmail: string;
-        friendCreatedAt: string;
-        friendDisplayPicture: string | null;
-      }[]
+      friendId: string;
+      friendName: string;
+      friendEmail: string;
+      friendCreatedAt: string;
+      friendDisplayPicture: string | null;
+    }[]
     | null
   >(null);
 
   const [myGroups, setMyGroups] = useState<
     | {
-        group: {
-          id: string;
-          name: string;
-          createdAt: string;
-          visibility: "private" | "public";
-        };
-        group_membership: {
-          id: string;
-          userId: string;
-          groupId: string;
-          joinedAt: string;
-          role: "user" | "admin";
-        } | null;
-      }[]
+      group: {
+        id: string;
+        name: string;
+        createdAt: string;
+        visibility: "private" | "public";
+      };
+      group_membership: {
+        id: string;
+        userId: string;
+        groupId: string;
+        joinedAt: string;
+        role: "user" | "admin";
+      } | null;
+    }[]
     | null
   >(null);
 
@@ -224,16 +224,14 @@ export function Sidebar() {
           {/* Add Friend Button */}
           <Button
             size="sm"
-            className="rounded-full h-12 w-12"
+            className="rounded-full h-12 w-12 bg-black text-white hover:bg-neutral-900"
             onClick={() => setShowFriendPopup(true)}
           >
             <UserPlus />
           </Button>
-
-          {/* + Button for Group */}
           <Button
             size="sm"
-            className="rounded-full h-12 w-12"
+            className="rounded-full h-12 w-12 bg-black text-white hover:bg-neutral-900"
             onClick={() => setShowGroupPopup(true)}
           >
             <Plus />
@@ -242,7 +240,7 @@ export function Sidebar() {
           {/* Logout Button */}
           <Button
             size="sm"
-            className="rounded-full h-12 w-12"
+            className="rounded-full h-12 w-12 bg-black text-white hover:bg-neutral-900"
             onClick={() => signOut()}
           >
             <LogOut />
