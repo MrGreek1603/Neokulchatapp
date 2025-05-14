@@ -7,6 +7,7 @@ import axios from "axios";
 import { useAuth } from "@/components/auth/auth-provider";
 import { motion, AnimatePresence } from "framer-motion";
 import { parseISO, format } from "date-fns";
+import { useRouter } from "next/navigation";
 
 export default function PrivateChatsPage({
   params,
@@ -15,6 +16,7 @@ export default function PrivateChatsPage({
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [chatID, setChatID] = useState(params.user_id);
+  const router = useRouter();
   const isGroup =
     params.user_id.startsWith("GPXX_") && params.user_id.endsWith("_GPXX");
 
@@ -25,6 +27,9 @@ export default function PrivateChatsPage({
         : params.user_id
     );
   }, [params, isGroup]);
+  const closeChat = () => {
+    router.push('/app'); // Navigate to /app when the close button is clicked
+  };
 
   const { user } = useAuth();
   const [lastUpdated, setLastUpdated] = useState(Date.now());
@@ -154,6 +159,13 @@ export default function PrivateChatsPage({
             Manage Group
           </a>
         )}
+         <Button
+          variant="secondary"
+          onClick={closeChat}
+          className="text-white text-xs px-3 py-1 rounded-md hover:bg-gray-700"
+        >
+          Close
+        </Button>
       </div>
 
       {/* Chat Body */}
