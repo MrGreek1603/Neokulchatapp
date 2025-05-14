@@ -32,6 +32,11 @@ export const groupVisibility = pgEnum("group_visibility", [
   "private",
 ]);
 
+export const friendRequestStatus = pgEnum("friend_request_status", [
+  "pending",
+  "accepted",
+  "rejected",
+]);
 export const groupInvite = pgTable(
   "group_invite",
   {
@@ -160,6 +165,7 @@ export const friend = pgTable(
     id: uuid().defaultRandom().primaryKey().notNull(),
     friender: uuid().notNull(),
     friendee: uuid().notNull(),
+    requestStatus: friendRequestStatus().default("pending").notNull(),
   },
   (table) => [
     foreignKey({

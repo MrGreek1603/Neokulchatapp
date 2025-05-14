@@ -21,6 +21,8 @@ export async function GET(request: NextRequest) {
       friendEmail: otherUserTable.email,
       friendCreatedAt: otherUserTable.createdAt,
       friendDisplayPicture: otherUserTable.displayPicture,
+      requestStatus: friend.requestStatus,
+      from: friend.friender,
     })
     .from(friend)
     .innerJoin(otherUserTable, eq(friend.friendee, otherUserTable.id))
@@ -34,6 +36,8 @@ export async function GET(request: NextRequest) {
       friendEmail: otherUserTable.email,
       friendCreatedAt: otherUserTable.createdAt,
       friendDisplayPicture: otherUserTable.displayPicture,
+      requestStatus: friend.requestStatus,
+      from: friend.friender,
     })
     .from(friend)
     .innerJoin(otherUserTable, eq(friend.friender, otherUserTable.id))

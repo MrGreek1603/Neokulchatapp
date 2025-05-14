@@ -2,7 +2,14 @@ import { useState, useEffect } from "react";
 import { useAuth } from "./auth/auth-provider";
 import { Button } from "./ui/button";
 import { useRouter } from "next/navigation";
-import { LogOut, Plus, UserPlus, MessageCircle, Users } from "lucide-react"; // Import new icons
+import {
+  LogOut,
+  Plus,
+  UserPlus,
+  MessageCircle,
+  Users,
+  Bell,
+} from "lucide-react"; // Import new icons
 import axios from "axios";
 import {
   Dialog,
@@ -14,6 +21,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { ScrollArea } from "./ui/scroll-area";
 
 function UserChat({
   user,
@@ -121,6 +129,8 @@ export function Sidebar() {
         friendEmail: string;
         friendCreatedAt: string;
         friendDisplayPicture: string | null;
+        from: string;
+        requestStatus: "pending" | "accepted" | "rejected";
       }[]
     | null
   >(null);
@@ -248,15 +258,34 @@ export function Sidebar() {
       console.log("Error creating group:", error);
     }
   };
+
+  const handleAccept = (friendId: string) => {
+    if (!user) return;
+    axios.post("/api/friends/accept", {
+      friendId,
+      userId: user.id,
+      action: "accept",
+    });
+  };
+  const handleReject = (friendId: string) => {
+    if (!user) return;
+    axios.post("/api/friends/accept", {
+      friendId,
+      userId: user.id,
+      action: "reject",
+    });
+  };
   return (
     <>
       {/* Sidebar */}
       <div className="h-screen w-16 bg-neutral-950 p-2 justify-between flex flex-col relative">
         <div className="flex flex-col gap-3">
           {activeSection === "friends" &&
-            myFriends?.map((friend) => (
-              <UserChat user={friend} key={friend.friendId} />
-            ))}
+            myFriends
+              ?.filter((x) => x.requestStatus === "accepted")
+              .map((friend) => (
+                <UserChat user={friend} key={friend.friendId} />
+              ))}
           {activeSection === "groups" &&
             myGroups?.map((group) => (
               <GroupChat group={group} key={group.group.id} />
@@ -296,6 +325,78 @@ export function Sidebar() {
           >
             <MessageCircle className="w-4" />
           </Button>
+
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button
+                size="sm"
+                className="rounded-full h-12 w-12 bg-neutral-950  text-white hover:bg-neutral-900"
+              >
+                <Bell className="w-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Friend Requests</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-sm font-semibold text-muted-foreground">
+                    Received
+                  </h4>
+                  <ScrollArea className="h-32 rounded-md border p-2">
+                    <div className="space-y-1">
+                      {myFriends
+
+                        ?.filter((x) => x.from !== user?.id)
+                        .filter((x) => x.requestStatus === "pending")
+                        .map((friend) => (
+                          <div
+                            key={friend.friendId}
+                            className="flex items-center justify-between text-sm"
+                          >
+                            <span>{friend.friendName}</span>
+                            <div className="space-x-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleAccept(friend.friendId)}
+                              >
+                                Accept
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleReject(friend.friendId)}
+                              >
+                                Reject
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </ScrollArea>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-semibold text-muted-foreground">
+                    Sent
+                  </h4>
+                  <ScrollArea className="h-32 rounded-md border p-2">
+                    <div className="space-y-1">
+                      {myFriends
+                        ?.filter((x) => x.from === user?.id)
+                        .map((friend) => (
+                          <div key={friend.friendId} className="text-sm">
+                            {friend.friendName}
+                          </div>
+                        ))}
+                    </div>
+                  </ScrollArea>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
 
           {/* Logout Button */}
           <Button
