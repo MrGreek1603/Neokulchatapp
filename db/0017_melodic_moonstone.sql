@@ -1,0 +1,1 @@
+ALTER TABLE "group_invite" DROP COLUMN "group_invite_code_join_method";

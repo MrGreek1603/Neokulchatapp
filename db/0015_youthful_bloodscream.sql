@@ -1,0 +1,1 @@
+ALTER TABLE "group_invite" ALTER COLUMN "join_method" SET DEFAULT 'request';

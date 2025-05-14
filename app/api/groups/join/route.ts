@@ -4,18 +4,36 @@ import { eq, and } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-  const { groupId, userId } = await req.json();
+  const { groupId, userId, groupInviteCode } = await req.json();
 
-  if (!groupId || !userId) {
+  if (!(groupId || groupInviteCode) || !userId) {
     return NextResponse.json(
-      { error: "Missing groupId or userId" },
+      { error: "Missing groupId or groupInviteCode or userId" },
       { status: 400 },
     );
   }
+  let groupIdCode = groupId;
+  if (groupInviteCode) {
+    const [gid] = await db
+      .select({
+        groupId: groupInvite.group,
+        joinMethod: groupInvite.joinMethod,
+      })
+      .from(groupInvite)
+      .where(eq(groupInvite.code, groupInviteCode));
+    groupIdCode = gid.groupId;
 
+    if (gid.joinMethod === "request") {
+      const [invite] = await db
+        .insert(GroupJoinRequests)
+        .values({ groupId: groupIdCode, user: userId })
+        .returning();
+      return NextResponse.json(invite);
+    }
+  }
   const [invite] = await db
     .insert(groupMembership)
-    .values({ groupId: groupId, userId: userId })
+    .values({ groupId: groupIdCode, userId: userId })
     .returning();
 
   await db

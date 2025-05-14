@@ -1,0 +1,1 @@
+ALTER TABLE "group_invite" RENAME COLUMN "join_method" TO "group_invite_code_join_method";

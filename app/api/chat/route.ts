@@ -71,7 +71,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(chatResults, { status: 200 });
   } catch (error) {
-    console.error("Error fetching chats:", error);
+    console.log("Error fetching chats:", error);
     return NextResponse.json(
       {
         error:

@@ -4,6 +4,15 @@ import { Button } from "./ui/button";
 import { useRouter } from "next/navigation";
 import { LogOut, Plus, UserPlus } from "lucide-react";
 import axios from "axios";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 function UserChat({
   user,
@@ -147,7 +156,7 @@ export function Sidebar() {
       });
       setMyGroups(groupsResponse.data);
     } catch (error) {
-      console.error("Error fetching friends and groups:", error);
+      console.log("Error fetching friends and groups:", error);
       // Optionally handle error display to the user
     }
   };
@@ -163,7 +172,7 @@ export function Sidebar() {
       });
       setSearchResults(response.data);
     } catch (error) {
-      console.error("Error searching for friends:", error);
+      console.log("Error searching for friends:", error);
       setSearchResults([]); // Indicate an error with an empty array or handle differently
     }
   };
@@ -182,8 +191,19 @@ export function Sidebar() {
       setFriendQuery("");
       // Optionally provide feedback to the user (e.g., a toast notification)
     } catch (error) {
-      console.error("Error adding friend:", error);
+      console.log("Error adding friend:", error);
       // Optionally handle error display to the user
+    }
+  };
+  const handleRequestJoinGroup = async (groupInviteCode: string) => {
+    if (!user) return;
+    try {
+      await axios.post("/api/groups/join", {
+        groupInviteCode,
+        userId: user.id,
+      });
+    } catch (error) {
+      console.log("Error adding friend:", error);
     }
   };
 
@@ -230,98 +250,66 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* Group ID Popup */}
-      {showGroupPopup && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-neutral-900 text-white p-6 rounded-lg shadow-lg w-[90%] max-w-sm">
-            <h2 className="text-lg font-semibold mb-4">Enter Group ID</h2>
-            <input
-              type="text"
-              placeholder="Group ID"
-              value={groupId}
-              onChange={(e) => setGroupId(e.target.value)}
-              className="w-full p-2 rounded bg-neutral-800 border border-neutral-700 placeholder:text-neutral-400 text-white"
-            />
-            <div className="flex justify-end gap-2 mt-4">
-              <Button
-                variant="outline"
-                className="border-neutral-600 text-neutral-300 hover:bg-neutral-800"
-                onClick={() => setShowGroupPopup(false)}
-              >
-                Cancel
-              </Button>
-              <Button className="bg-white text-black hover:bg-gray-300">
-                Submit
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Add Friend Popup */}
-      {showFriendPopup && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-neutral-900 text-white p-6 rounded-lg shadow-lg w-[90%] max-w-md">
-            <h2 className="text-lg font-semibold mb-4">Search Friend</h2>
-            <input
-              type="text"
-              placeholder="Enter name or email"
-              value={friendQuery}
-              onChange={(e) => setFriendQuery(e.target.value)}
-              className="w-full p-2 rounded bg-neutral-800 border border-neutral-700 placeholder:text-neutral-400 text-white mb-2"
-            />
-            <Button
-              className="bg-white text-black hover:bg-gray-300 w-full mb-4"
-              onClick={handleSearchFriend}
-            >
-              Search
+      <Dialog open={showGroupPopup} onOpenChange={setShowGroupPopup}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enter Group ID</DialogTitle>
+          </DialogHeader>
+          <input
+            value={groupId}
+            onChange={(e) => setGroupId(e.target.value)}
+            className="w-full p-2 rounded bg-neutral-800 border border-neutral-700 placeholder:text-neutral-400 text-white"
+            placeholder="Group ID"
+          />
+          <div className="flex justify-end gap-2 mt-4">
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button onClick={() => handleRequestJoinGroup(groupId)}>
+              Submit
             </Button>
-
-            {searchResults && searchResults.length > 0 ? (
-              <div>
-                <h3 className="text-md font-semibold mb-2">Search Results</h3>
-                <ul className="space-y-2">
-                  {searchResults.map((result) => (
-                    <li
-                      key={result.id}
-                      className="flex items-center justify-between"
-                    >
-                      <div>
-                        <p className="font-semibold">{result.name}</p>
-                        <p className="text-sm text-neutral-400">
-                          {result.email}
-                        </p>
-                      </div>
-                      <Button
-                        size="sm"
-                        onClick={() => handleAddFriend(result.id)}
-                      >
-                        Add
-                      </Button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : searchResults?.length === 0 ? (
-              <p className="text-neutral-400">No users found.</p>
-            ) : null}
-
-            <div className="flex justify-end gap-2 mt-4">
-              <Button
-                variant="outline"
-                className="border-neutral-600 text-neutral-300 hover:bg-neutral-800"
-                onClick={() => {
-                  setShowFriendPopup(false);
-                  setSearchResults(null); // Clear search results on cancel
-                  setFriendQuery(""); // Clear the query on cancel
-                }}
-              >
-                Cancel
-              </Button>
-            </div>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showFriendPopup} onOpenChange={setShowFriendPopup}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Search Friend</DialogTitle>
+          </DialogHeader>
+          <input
+            value={friendQuery}
+            onChange={(e) => setFriendQuery(e.target.value)}
+            className="w-full p-2 rounded bg-neutral-800 border border-neutral-700 placeholder:text-neutral-400 text-white mb-2"
+            placeholder="Enter name or email"
+          />
+          <Button className="w-full mb-4" onClick={handleSearchFriend}>
+            Search
+          </Button>
+          {searchResults?.length ? (
+            <ul className="space-y-2">
+              {searchResults.map((r) => (
+                <li key={r.id} className="flex justify-between">
+                  <div>
+                    <p>{r.name}</p>
+                    <p className="text-sm text-neutral-400">{r.email}</p>
+                  </div>
+                  <Button size="sm" onClick={() => handleAddFriend(r.id)}>
+                    Add
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            searchResults && <p>No users found.</p>
+          )}
+          <div className="flex justify-end mt-4">
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

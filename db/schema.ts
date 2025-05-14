@@ -21,6 +21,10 @@ export const groupJoinMethodEnum = pgEnum("group_join_method", [
   "invite",
 ]);
 
+export const groupInviteCodeJoinMethodEnum = pgEnum(
+  "group_invite_join_method",
+  ["direct", "request"],
+);
 export const chats = pgTable(
   "chats",
   {
@@ -76,6 +80,9 @@ export const groupInvite = pgTable(
     expiresAt: timestamp("expires_at", { mode: "string" }),
     maxUses: integer("max_uses"),
     usedCount: integer("used_count").default(0),
+    joinMethod: groupInviteCodeJoinMethodEnum("join_method")
+      .default("request")
+      .notNull(),
   },
   (table) => [
     foreignKey({
