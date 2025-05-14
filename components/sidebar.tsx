@@ -13,6 +13,7 @@ import {
   DialogClose,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 function UserChat({
   user,
@@ -42,9 +43,9 @@ function UserChat({
         <>
           {user.friendName.split(" ").length > 1
             ? user.friendName
-              .split(" ")
-              .map((x) => x[0])
-              .join("")
+                .split(" ")
+                .map((x) => x[0])
+                .join("")
             : user.friendName.slice(0, 3)}
         </>
       )}
@@ -82,9 +83,9 @@ function GroupChat({
       <>
         {group.group.name.split(" ").length > 1
           ? group.group.name
-            .split(" ")
-            .map((x) => x[0])
-            .join("")
+              .split(" ")
+              .map((x) => x[0])
+              .join("")
           : group.group.name.slice(0, 3)}
       </>
     </button>
@@ -104,45 +105,65 @@ export function Sidebar() {
   const [showGroupPopup, setShowGroupPopup] = useState(false);
   const [showFriendPopup, setShowFriendPopup] = useState(false);
   const [groupId, setGroupId] = useState("");
+  const [newGroupName, setNewGroupName] = useState("");
   const [friendQuery, setFriendQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[] | null>(
     null,
   );
+  const [selectedFriendsForNewGroup, setSelectedFriendsForNewGroup] = useState<
+    string[]
+  >([]);
+
   const [myFriends, setMyFriends] = useState<
     | {
-      friendId: string;
-      friendName: string;
-      friendEmail: string;
-      friendCreatedAt: string;
-      friendDisplayPicture: string | null;
-    }[]
+        friendId: string;
+        friendName: string;
+        friendEmail: string;
+        friendCreatedAt: string;
+        friendDisplayPicture: string | null;
+      }[]
     | null
   >(null);
 
   const [myGroups, setMyGroups] = useState<
     | {
-      group: {
-        id: string;
-        name: string;
-        createdAt: string;
-        visibility: "private" | "public";
-      };
-      group_membership: {
-        id: string;
-        userId: string;
-        groupId: string;
-        joinedAt: string;
-        role: "user" | "admin";
-      } | null;
-    }[]
+        group: {
+          id: string;
+          name: string;
+          createdAt: string;
+          visibility: "private" | "public";
+        };
+        group_membership: {
+          id: string;
+          userId: string;
+          groupId: string;
+          joinedAt: string;
+          role: "user" | "admin";
+        } | null;
+      }[]
     | null
   >(null);
 
-  const [activeSection, setActiveSection] = useState<"friends" | "groups" | null>(null);
+  const [activeSection, setActiveSection] = useState<"friends" | "groups">(
+    "friends",
+  );
 
   useEffect(() => {
     if (!user) return;
-    fetchFriendsAndGroups();
+    try {
+      axios
+        .get("/api/friends", {
+          params: { userId: user.id },
+        })
+        .then((resp) => setMyFriends(resp.data));
+      axios
+        .get("/api/groups", {
+          params: { userId: user.id },
+        })
+        .then((resp) => setMyGroups(resp.data));
+    } catch (error) {
+      console.log("Error fetching friends and groups:", error);
+    }
   }, [user]);
 
   const fetchFriendsAndGroups = async () => {
@@ -209,6 +230,24 @@ export function Sidebar() {
     }
   };
 
+  const toggleSelect = (id: string) => {
+    setSelectedFriendsForNewGroup((prev) =>
+      prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id],
+    );
+  };
+
+  const handleCreateNewGroup = () => {
+    if (!user) return;
+    try {
+      axios.post("/api/groups/create", {
+        users: selectedFriendsForNewGroup,
+        groupName: newGroupName,
+        userId: user.id,
+      });
+    } catch (error) {
+      console.log("Error creating group:", error);
+    }
+  };
   return (
     <>
       {/* Sidebar */}
@@ -225,111 +264,151 @@ export function Sidebar() {
         </div>
 
         <div className="flex flex-col gap-2 items-center">
-          {/* Add Friend Button */}
-          <Button
+          {/* <Button
             size="sm"
-            className="rounded-full h-12 w-12 bg-black text-white hover:bg-neutral-900"
+            className="rounded-full h-12 w-12 bg-neutral-950  text-white hover:bg-neutral-900"
             onClick={() => setShowFriendPopup(true)}
           >
-            <UserPlus />
-          </Button>
-          
-          {/* Friends Messages Button */}
-          <Button
-            size="sm"
-            className="rounded-full h-12 w-12 bg-black text-white hover:bg-neutral-900"
-            onClick={() => setActiveSection("friends")}
-          >
-            <MessageCircle />
-          </Button>
+            <UserPlus className="w-4" />
+          </Button> */}
 
           {/* Add Group Button */}
           <Button
             size="sm"
-            className="rounded-full h-12 w-12 bg-black text-white hover:bg-neutral-900"
+            className="rounded-full h-12 w-12 bg-neutral-950  text-white hover:bg-neutral-900"
             onClick={() => setShowGroupPopup(true)}
           >
-            <Plus />
+            <Plus className="w-4" />
           </Button>
-          
           {/* Groups Button */}
           <Button
             size="sm"
-            className="rounded-full h-12 w-12 bg-black text-white hover:bg-neutral-900"
+            className="rounded-full h-12 w-12 bg-neutral-950  text-white hover:bg-neutral-900"
             onClick={() => setActiveSection("groups")}
           >
-            <Users />
+            <Users className="w-4" />
+          </Button>
+          {/* Friends Messages Button */}
+          <Button
+            size="sm"
+            className="rounded-full h-12 w-12 bg-neutral-950  text-white hover:bg-neutral-900"
+            onClick={() => setActiveSection("friends")}
+          >
+            <MessageCircle className="w-4" />
           </Button>
 
           {/* Logout Button */}
           <Button
             size="sm"
-            className="rounded-full h-12 w-12 bg-black text-white hover:bg-neutral-900"
+            className="rounded-full h-12 w-12 bg-neutral-950  text-white hover:bg-neutral-900"
             onClick={() => signOut()}
           >
-            <LogOut />
+            <LogOut className="w-4" />
           </Button>
         </div>
       </div>
 
       <Dialog open={showGroupPopup} onOpenChange={setShowGroupPopup}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Enter Group ID</DialogTitle>
-          </DialogHeader>
-          <input
-            value={groupId}
-            onChange={(e) => setGroupId(e.target.value)}
-            className="w-full p-2 rounded bg-neutral-800 border border-neutral-700 placeholder:text-neutral-400 text-white"
-            placeholder="Group ID"
-          />
-          <div className="flex justify-end gap-2 mt-4">
-            <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
-            <Button onClick={() => handleRequestJoinGroup(groupId)}>
-              Submit
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+          <Tabs defaultValue="join-group">
+            <TabsList className="grid w-full grid-cols-3 mb-4">
+              <TabsTrigger value="create-group">Create Group</TabsTrigger>
+              <TabsTrigger value="find-friends">Find Friends</TabsTrigger>
+              <TabsTrigger value="join-group">Join Group</TabsTrigger>
+            </TabsList>
 
-      <Dialog open={showFriendPopup} onOpenChange={setShowFriendPopup}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Search Friend</DialogTitle>
-          </DialogHeader>
-          <input
-            value={friendQuery}
-            onChange={(e) => setFriendQuery(e.target.value)}
-            className="w-full p-2 rounded bg-neutral-800 border border-neutral-700 placeholder:text-neutral-400 text-white mb-2"
-            placeholder="Enter name or email"
-          />
-          <Button className="w-full mb-4" onClick={handleSearchFriend}>
-            Search
-          </Button>
-          {searchResults?.length ? (
-            <ul className="space-y-2">
-              {searchResults.map((r) => (
-                <li key={r.id} className="flex justify-between">
-                  <div>
-                    <p>{r.name}</p>
-                    <p className="text-sm text-neutral-400">{r.email}</p>
+            <TabsContent value="create-group">
+              <input
+                value={newGroupName}
+                onChange={(e) => {
+                  setNewGroupName(e.target.value);
+                  handleSearchFriend();
+                }}
+                placeholder="Group Name"
+                className="w-full p-2 rounded bg-neutral-800 border border-neutral-700 text-white"
+              />
+              <div className="flex justify-end gap-2 mt-4">
+                <DialogClose asChild>
+                  <Button variant="outline">Cancel</Button>
+                </DialogClose>
+                <Button onClick={handleCreateNewGroup}>Create</Button>
+              </div>
+              <div>
+                {myFriends?.map((friend) => (
+                  <div key={friend.friendId}>
+                    <input
+                      type="checkbox"
+                      checked={selectedFriendsForNewGroup.includes(
+                        friend.friendId,
+                      )}
+                      onChange={() => toggleSelect(friend.friendId)}
+                    />
+                    {friend.friendName}
                   </div>
-                  <Button size="sm" onClick={() => handleAddFriend(r.id)}>
-                    Add
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            searchResults && <p>No users found.</p>
-          )}
-          <div className="flex justify-end mt-4">
-            <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
-          </div>
+                ))}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="find-friends">
+              <div className="grid grid-cols-5 gap-2 mb-2">
+                <input
+                  value={friendQuery}
+                  onChange={(e) => {
+                    setFriendQuery(e.target.value);
+                    handleSearchFriend();
+                  }}
+                  className="w-full p-2 col-span-4 rounded bg-neutral-800 border border-neutral-700 placeholder:text-neutral-400 text-white h-full"
+                  placeholder="Enter name or email"
+                />
+                <Button
+                  variant={"secondary"}
+                  className="w-full h-full"
+                  onClick={handleSearchFriend}
+                >
+                  Search
+                </Button>
+              </div>
+              {searchResults?.length ? (
+                <ul className="space-y-2">
+                  {searchResults.map((r) => (
+                    <li key={r.id} className="flex justify-between">
+                      <div>
+                        <p>{r.name}</p>
+                        <p className="text-sm text-neutral-400">{r.email}</p>
+                      </div>
+                      <Button size="sm" onClick={() => handleAddFriend(r.id)}>
+                        Add
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                searchResults && <p>No users found.</p>
+              )}
+              <div className="flex justify-end mt-4">
+                <DialogClose asChild>
+                  <Button variant="outline">Cancel</Button>
+                </DialogClose>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="join-group">
+              <input
+                value={groupId}
+                onChange={(e) => setGroupId(e.target.value)}
+                className="w-full p-2 rounded bg-neutral-800 border border-neutral-700 text-white"
+                placeholder="Group ID"
+              />
+              <div className="flex justify-end gap-2 mt-4">
+                <DialogClose asChild>
+                  <Button variant="outline">Cancel</Button>
+                </DialogClose>
+                <Button onClick={() => handleRequestJoinGroup(groupId)}>
+                  Submit
+                </Button>
+              </div>
+            </TabsContent>
+          </Tabs>
         </DialogContent>
       </Dialog>
     </>

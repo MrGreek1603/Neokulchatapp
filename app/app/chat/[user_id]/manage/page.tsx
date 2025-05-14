@@ -167,7 +167,16 @@ export default function GroupMembersPage({ params }: PageParams) {
       console.error("Error creating invite:", error);
     }
   };
-
+  const handleKickUser = (userId: string) => {
+    try {
+      axios.delete("/api/groups/members", {
+        data: { userId, groupId },
+      });
+      console.log("User kicked successfully");
+    } catch (error) {
+      console.error("Error kicking user:", error);
+    }
+  };
   return (
     <main className="p-6 font-sans mx-auto max-w-5xl">
       <div className="mb-6">
@@ -255,7 +264,13 @@ export default function GroupMembersPage({ params }: PageParams) {
           {groupMembers.length > 0 ? (
             groupMembers.map((member) => (
               <li key={member.id} className="mb-2 text-lg">
-                {member.name}
+                {member.name}{" "}
+                <Button
+                  variant={"destructive"}
+                  onClick={() => handleKickUser(member.id)}
+                >
+                  KICK
+                </Button>
               </li>
             ))
           ) : (

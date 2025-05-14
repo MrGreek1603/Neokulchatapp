@@ -8,6 +8,6 @@ export default defineConfig({
   schema: "./db/schema.ts",
   dialect: "postgresql",
   dbCredentials: {
-    url: databaseUrl!,
+    url: "postgresql://postgres.bzucvwewwriqyatbvjbp:chatapp123*@aws-0-ap-south-1.pooler.supabase.com:6543/postgres",
   },
 });
