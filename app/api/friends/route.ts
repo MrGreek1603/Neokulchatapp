@@ -79,7 +79,10 @@ export async function POST(request: Request) {
       .select({ id: friend.id })
       .from(friend)
       .where(
-        and(eq(friend.friender, frienderId), eq(friend.friendee, friendeeId)),
+        or(
+          and(eq(friend.friender, frienderId), eq(friend.friendee, friendeeId)),
+          and(eq(friend.friendee, frienderId), eq(friend.friender, friendeeId)),
+        ),
       )
       .limit(1);
 
