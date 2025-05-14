@@ -5,6 +5,8 @@ import { NextResponse } from "next/server";
 
 export async function PUT(req: Request) {
   const { userId, ...data } = await req.json();
+
+  console.log(userId);
   if (!userId)
     return NextResponse.json({ error: "Missing user ID" }, { status: 400 });
 

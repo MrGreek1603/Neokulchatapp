@@ -15,7 +15,7 @@ export default function ProfilePage() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    image: "",
+    displayPicture: "",
   });
 
   const [preview, setPreview] = useState<string | null>(null);
@@ -26,7 +26,7 @@ export default function ProfilePage() {
       setFormData({
         name: user.name || "",
         email: user.email || "",
-        image: user.image || "",
+        displayPicture: user.image || "",
       });
       setPreview(user.image || null);
     }
@@ -38,7 +38,7 @@ export default function ProfilePage() {
       const reader = new FileReader();
       reader.onloadend = () => {
         const base64String = reader.result as string;
-        setFormData({ ...formData, image: base64String });
+        setFormData({ ...formData, displayPicture: base64String });
         setPreview(base64String);
       };
       reader.readAsDataURL(file);
@@ -109,7 +109,9 @@ export default function ProfilePage() {
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
               required
               className="mt-2 w-full bg-zinc-800 text-white border-zinc-700 focus:ring-sky-500"
             />
