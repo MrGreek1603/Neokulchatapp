@@ -130,7 +130,7 @@ export const chats = pgTable(
     chatTo: uuid("chat_to"),
     groupId: uuid("group_id"),
     message: text(),
-    attachment: bytea().notNull(),
+    attachment: text(),
     createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
       .defaultNow()
       .notNull(),

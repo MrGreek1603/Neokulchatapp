@@ -24,11 +24,11 @@ export default function PrivateChatsPage({
     setChatID(
       isGroup
         ? params.user_id.replace("GPXX_", "").replace("_GPXX", "")
-        : params.user_id
+        : params.user_id,
     );
   }, [params, isGroup]);
   const closeChat = () => {
-    router.push('/app'); // Navigate to /app when the close button is clicked
+    router.push("/app"); // Navigate to /app when the close button is clicked
   };
 
   const { user } = useAuth();
@@ -38,6 +38,7 @@ export default function PrivateChatsPage({
   const [commonChatId, setCommonChatId] = useState<string | null>(null);
   const [friend, setFriend] = useState<any | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -103,34 +104,82 @@ export default function PrivateChatsPage({
   }, [chatID, user, isGroup]);
 
   const sendMessage = async () => {
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() && !selectedFile) return;
 
-    const payload = {
+    const payload: any = {
       userId: user?.id,
       message: newMessage,
       ...(isGroup ? { groupId: chatID } : { chatWith: chatID }),
     };
 
-    await axios.post("/api/chat", payload);
-    await axios.put("/api/stream", {
-      chatId: commonChatId,
-      message: JSON.stringify({
-        id: crypto.randomUUID(),
-        message: newMessage,
-        attachment: null,
-        createdAt: new Date().toISOString(),
-        chatFrom: { id: user!.id, name: user!.new_email },
-      }),
-    });
+    if (selectedFile) {
+      // Convert file to base64 using FileReader
+      const reader = new FileReader();
 
-    setNewMessage("");
-    inputRef.current?.focus();
+      reader.onloadend = async () => {
+        const base64Image = reader.result as string; // This is the base64 string
+        payload.attachment = base64Image;
+
+        await axios.post("/api/chat", payload);
+
+        // Send real-time stream data if required
+        await axios.put("/api/stream", {
+          chatId: commonChatId,
+          message: JSON.stringify({
+            id: crypto.randomUUID(),
+            message: newMessage,
+            attachment: base64Image,
+            createdAt: new Date().toISOString(),
+            chatFrom: { id: user!.id, name: user!.new_email },
+          }),
+        });
+
+        setNewMessage("");
+        setSelectedFile(null); // Clear the file after sending
+        inputRef.current?.focus();
+      };
+
+      // Read the selected file as a Data URL (Base64)
+      reader.readAsDataURL(selectedFile);
+    } else {
+      // No file, just send the message
+      await axios.post("/api/chat", payload);
+      await axios.put("/api/stream", {
+        chatId: commonChatId,
+        message: JSON.stringify({
+          id: crypto.randomUUID(),
+          message: newMessage,
+          attachment: "",
+          createdAt: new Date().toISOString(),
+          chatFrom: { id: user!.id, name: user!.new_email },
+        }),
+      });
+
+      setNewMessage("");
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
       sendMessage();
+    }
+  };
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files ? e.target.files[0] : null;
+
+    if (file) {
+      // Check if the file is an image and its size is <= 10MB
+      if (!file.type.startsWith("image/")) {
+        alert("Only image files are allowed.");
+        setSelectedFile(null);
+      } else if (file.size > 10 * 1024 * 1024) {
+        // 10MB = 10 * 1024 * 1024 bytes
+        alert("File size must be less than 10MB.");
+        setSelectedFile(null);
+      } else {
+        setSelectedFile(file);
+      }
     }
   };
 
@@ -159,7 +208,7 @@ export default function PrivateChatsPage({
             Manage Group
           </a>
         )}
-         <Button
+        <Button
           variant="secondary"
           onClick={closeChat}
           className="text-white text-xs px-3 py-1 rounded-md hover:bg-gray-700"
@@ -175,7 +224,7 @@ export default function PrivateChatsPage({
             {chats.map((chat) => (
               <motion.div
                 key={chat.id}
-                className={`max-w-[70%] px-3 py-2 rounded-xl shadow ${
+                className={`max-w-[70%] px-1.5 py-1 rounded-xl shadow ${
                   chat.chatFrom.id === user?.id
                     ? "self-end bg-green-200 dark:bg-green-800 text-black dark:text-white"
                     : "self-start bg-white/90 dark:bg-gray-800 text-black dark:text-white"
@@ -191,6 +240,12 @@ export default function PrivateChatsPage({
                   </div>
                 )}
                 <div className="text-sm break-words whitespace-pre-wrap">
+                  <div>
+                    <img
+                      className="max-w-[32rem] max-h-96 rounded-xl rounded-lg mb-2 "
+                      src={chat.attachment}
+                    />
+                  </div>
                   {chat.message}
                 </div>
                 <div className="text-[10px] text-right text-gray-500 mt-1">
@@ -212,7 +267,30 @@ export default function PrivateChatsPage({
 
       {/* Chat Input Box */}
       <div className="sticky bottom-0 bg-background/80 backdrop-blur p-4 border-t border-border">
-        <div className="flex gap-2">
+        <div className="flex gap-2 relative">
+          <div className=" h-64 max-w-96 w-3/4 pointer-events-auto flex items-end  absolute bottom-[200%]">
+            <div className="text-xs text-gray-500 mt-1">
+              {selectedFile && (
+                <>
+                  <img
+                    src={URL.createObjectURL(selectedFile)}
+                    alt="Preview"
+                    className="mt-2 w-32 h-32 object-cover rounded"
+                  />
+                </>
+              )}
+            </div>
+          </div>
+          <label className="w-10 h-10 flex items-center justify-center rounded-full bg-muted cursor-pointer">
+            +
+            <input
+              type="file"
+              onChange={handleFileChange}
+              accept="image/*"
+              className="hidden"
+            />
+          </label>
+
           <Input
             ref={inputRef}
             placeholder="Type your message..."
