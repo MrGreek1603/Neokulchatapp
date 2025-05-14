@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "./auth/auth-provider";
 import { Button } from "./ui/button";
 import { useRouter } from "next/navigation";
-import { LogOut, Plus, UserPlus } from "lucide-react";
+import { LogOut, Plus, UserPlus, MessageCircle, Users } from "lucide-react"; // Import new icons
 import axios from "axios";
 import {
   Dialog,
@@ -138,6 +138,8 @@ export function Sidebar() {
     | null
   >(null);
 
+  const [activeSection, setActiveSection] = useState<"friends" | "groups" | null>(null);
+
   useEffect(() => {
     if (!user) return;
     fetchFriendsAndGroups();
@@ -212,12 +214,14 @@ export function Sidebar() {
       {/* Sidebar */}
       <div className="h-screen w-16 bg-neutral-950 p-2 justify-between flex flex-col relative">
         <div className="flex flex-col gap-3">
-          {myFriends?.map((friend) => (
-            <UserChat user={friend} key={friend.friendId} />
-          ))}
-          {myGroups?.map((group) => (
-            <GroupChat group={group} key={group.group.id} />
-          ))}
+          {activeSection === "friends" &&
+            myFriends?.map((friend) => (
+              <UserChat user={friend} key={friend.friendId} />
+            ))}
+          {activeSection === "groups" &&
+            myGroups?.map((group) => (
+              <GroupChat group={group} key={group.group.id} />
+            ))}
         </div>
 
         <div className="flex flex-col gap-2 items-center">
@@ -229,12 +233,32 @@ export function Sidebar() {
           >
             <UserPlus />
           </Button>
+          
+          {/* Friends Messages Button */}
+          <Button
+            size="sm"
+            className="rounded-full h-12 w-12 bg-black text-white hover:bg-neutral-900"
+            onClick={() => setActiveSection("friends")}
+          >
+            <MessageCircle />
+          </Button>
+
+          {/* Add Group Button */}
           <Button
             size="sm"
             className="rounded-full h-12 w-12 bg-black text-white hover:bg-neutral-900"
             onClick={() => setShowGroupPopup(true)}
           >
             <Plus />
+          </Button>
+          
+          {/* Groups Button */}
+          <Button
+            size="sm"
+            className="rounded-full h-12 w-12 bg-black text-white hover:bg-neutral-900"
+            onClick={() => setActiveSection("groups")}
+          >
+            <Users />
           </Button>
 
           {/* Logout Button */}
