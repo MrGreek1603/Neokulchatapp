@@ -11,10 +11,11 @@ import { useAuth } from "@/components/auth/auth-provider";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 export default function SignupPage() {
   const { signUp, loading } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -59,6 +60,8 @@ export default function SignupPage() {
         });
 
         toast.success("Account created successfully!");
+        router.push("/app");
+        
       } else {
         toast.error("Failed to create account");
       }
