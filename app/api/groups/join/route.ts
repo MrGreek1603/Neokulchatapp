@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { GroupJoinRequests, groupInvite, groupMembership } from "@/db/schema";
+import { groupJoinRequest, groupInvite, groupMembership } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
 
     if (gid.joinMethod === "request") {
       const [invite] = await db
-        .insert(GroupJoinRequests)
+        .insert(groupJoinRequest)
         .values({ groupId: groupIdCode, user: userId })
         .returning();
       return NextResponse.json(invite);
@@ -37,11 +37,11 @@ export async function POST(req: NextRequest) {
     .returning();
 
   await db
-    .delete(GroupJoinRequests)
+    .delete(groupJoinRequest)
     .where(
       and(
-        eq(GroupJoinRequests.groupId, groupId),
-        eq(GroupJoinRequests.user, userId),
+        eq(groupJoinRequest.groupId, groupId),
+        eq(groupJoinRequest.user, userId),
       ),
     );
 

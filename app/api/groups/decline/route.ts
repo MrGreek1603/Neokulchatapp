@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { GroupJoinRequests, groupInvite, groupMembership } from "@/db/schema";
+import { groupJoinRequest, groupInvite, groupMembership } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -15,11 +15,11 @@ export async function POST(req: NextRequest) {
 
   // Deleting the join request by both groupId and userId
   const deletedRequest = await db
-    .delete(GroupJoinRequests)
+    .delete(groupJoinRequest)
     .where(
       and(
-        eq(GroupJoinRequests.groupId, groupId),
-        eq(GroupJoinRequests.user, userId),
+        eq(groupJoinRequest.groupId, groupId),
+        eq(groupJoinRequest.user, userId),
       ),
     )
     .returning();

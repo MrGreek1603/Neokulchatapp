@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { GroupJoinRequests, group, groupMembership, user } from "@/db/schema";
+import { groupJoinRequest, group, groupMembership, user } from "@/db/schema";
 import { DrizzleError, and, eq } from "drizzle-orm";
 
 // GET users in a group
@@ -20,9 +20,9 @@ export async function GET(req: NextRequest) {
         name: user.name,
         email: user.email,
       })
-      .from(GroupJoinRequests)
-      .innerJoin(user, eq(GroupJoinRequests.user, user.id))
-      .where(eq(GroupJoinRequests.groupId, groupId));
+      .from(groupJoinRequest)
+      .innerJoin(user, eq(groupJoinRequest.user, user.id))
+      .where(eq(groupJoinRequest.groupId, groupId));
 
     return NextResponse.json(pendingRequests);
   }

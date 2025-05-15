@@ -10,7 +10,6 @@ import { toast } from "sonner";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 
-
 export default function ProfilePage() {
   const { user } = useAuth();
   const router = useRouter();
@@ -26,12 +25,18 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (user) {
-      setFormData({
-        name: user.name || "",
-        email: user.email || "",
-        displayPicture: user.image || "",
-      });
-      setPreview(user.image || null);
+      axios
+        .get("/api/users", {
+          params: { userId: user.id },
+        })
+        .then((resp) => {
+          setFormData({
+            name: resp.data.name || "",
+            email: user.email || "",
+            displayPicture: resp.data.displayPicture || "",
+          });
+          setPreview(resp.data.displayPicture || null);
+        });
     }
   }, [user]);
 
@@ -154,12 +159,11 @@ export default function ProfilePage() {
           </motion.div>
         </form>
         <button
-  onClick={() => router.push('/app')}
-  className="absolute top-4 left-4 text-white hover:text-sky-400 transition"
->
-  ← Back
-</button>
-
+          onClick={() => router.push("/app")}
+          className="absolute top-4 left-4 text-white hover:text-sky-400 transition"
+        >
+          ← Back
+        </button>
       </motion.div>
     </main>
   );
