@@ -3,12 +3,13 @@ import { db } from "@/lib/db";
 import { group, groupMembership } from "@/db/schema";
 
 export async function POST(req: Request) {
-  const { users, groupName, userId } = await req.json();
+  const { users, groupName, userId, visibility } = await req.json();
 
   const newGroup = await db
     .insert(group)
     .values({
       name: groupName,
+      visibility,
     })
     .returning();
 

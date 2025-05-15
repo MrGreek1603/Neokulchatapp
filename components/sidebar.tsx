@@ -21,6 +21,14 @@ import {
   DialogClose,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ScrollArea } from "./ui/scroll-area";
 
@@ -123,6 +131,10 @@ export function Sidebar() {
     string[]
   >([]);
 
+  const [newGroupVisibility, setNewGroupVisibility] = useState<
+    "private" | "public"
+  >("private");
+
   const [myFriends, setMyFriends] = useState<
     | {
         friendId: string;
@@ -158,10 +170,10 @@ export function Sidebar() {
   const [activeSection, setActiveSection] = useState<"friends" | "groups">(
     "friends",
   );
-    const router = useRouter();
+  const router = useRouter();
   const handleProfile = () => {
-    router.push("/app/profile")
-  }
+    router.push("/app/profile");
+  };
   useEffect(() => {
     if (!user) return;
     try {
@@ -257,6 +269,7 @@ export function Sidebar() {
         users: selectedFriendsForNewGroup,
         groupName: newGroupName,
         userId: user.id,
+        visibility: newGroupVisibility,
       });
     } catch (error) {
       console.log("Error creating group:", error);
@@ -401,17 +414,14 @@ export function Sidebar() {
               </div>
             </DialogContent>
           </Dialog>
-          
 
-
-<Button
-  size="sm"
-  className="rounded-full h-12 w-12 bg-neutral-950 text-white hover:bg-neutral-900"
-  onClick={handleProfile}
->
-  <User className="w-4" />
-</Button>
-
+          <Button
+            size="sm"
+            className="rounded-full h-12 w-12 bg-neutral-950 text-white hover:bg-neutral-900"
+            onClick={handleProfile}
+          >
+            <User className="w-4" />
+          </Button>
 
           {/* Logout Button */}
           <Button
@@ -463,6 +473,19 @@ export function Sidebar() {
                   </div>
                 ))}
               </div>
+              <Select
+                onValueChange={(value: "private" | "public") =>
+                  setNewGroupVisibility(value)
+                }
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Visibility" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="private">Private</SelectItem>
+                  <SelectItem value="public">Public</SelectItem>
+                </SelectContent>
+              </Select>
             </TabsContent>
 
             <TabsContent value="find-friends">
