@@ -29,7 +29,7 @@ export default function Home() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-2 text-xl font-bold text-white">
             <MessageSquare className="h-5 w-5 text-blue-500" />
-            <span>ChatForum</span>
+            <span>Neokul ChatForum</span>
           </div>
           <div className="flex items-center gap-4">
             <Link
@@ -138,7 +138,7 @@ export default function Home() {
         <div className="container mx-auto flex flex-col md:flex-row justify-between items-center px-4 gap-4">
           <div className="flex items-center gap-2">
             <MessageSquare className="h-4 w-4 text-white" />
-            <span>© 2025 ChatForum. All rights reserved.</span>
+            <span>© 2025 Neokul ChatForum. All rights reserved.</span>
           </div>
           <div className="flex gap-4">
             <Link href="#" className="hover:underline">Privacy</Link>

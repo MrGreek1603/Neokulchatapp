@@ -29,7 +29,7 @@ export default function DashboardPage() {
         >
           <span className="inline-flex items-center gap-2">
             <PartyPopper className="w-8 h-8 text-pink-400" />
-            Welcome to the Chat Forum
+            Welcome to the Neokul Chat Forum
           </span>
         </motion.h1>
 

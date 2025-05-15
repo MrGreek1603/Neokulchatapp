@@ -45,7 +45,7 @@ export default function LoginPage() {
           <div className="flex flex-col items-center space-y-2 text-center">
             <div className="flex items-center gap-2">
               <MessageSquare className="h-6 w-6" />
-              <h1 className="text-2xl font-bold">ChatForum</h1>
+              <h1 className="text-2xl font-bold">Neokul ChatForum</h1>
             </div>
             <p className="text-sm text-muted-foreground">
               Enter your credentials to sign in to your account
