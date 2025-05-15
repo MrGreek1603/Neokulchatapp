@@ -9,6 +9,7 @@ import {
   MessageCircle,
   Users,
   Bell,
+  User,
 } from "lucide-react"; // Import new icons
 import axios from "axios";
 import {
@@ -157,7 +158,10 @@ export function Sidebar() {
   const [activeSection, setActiveSection] = useState<"friends" | "groups">(
     "friends",
   );
-
+    const router = useRouter();
+  const handleProfile = () => {
+    router.push("/app/profile")
+  }
   useEffect(() => {
     if (!user) return;
     try {
@@ -397,6 +401,17 @@ export function Sidebar() {
               </div>
             </DialogContent>
           </Dialog>
+          
+
+
+<Button
+  size="sm"
+  className="rounded-full h-12 w-12 bg-neutral-950 text-white hover:bg-neutral-900"
+  onClick={handleProfile}
+>
+  <User className="w-4" />
+</Button>
+
 
           {/* Logout Button */}
           <Button

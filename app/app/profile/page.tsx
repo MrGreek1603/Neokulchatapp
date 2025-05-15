@@ -8,9 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import axios from "axios";
+import { useRouter } from "next/navigation";
+
 
 export default function ProfilePage() {
   const { user } = useAuth();
+  const router = useRouter();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -150,6 +153,13 @@ export default function ProfilePage() {
             </Button>
           </motion.div>
         </form>
+        <button
+  onClick={() => router.push('/app')}
+  className="absolute top-4 left-4 text-white hover:text-sky-400 transition"
+>
+  ← Back
+</button>
+
       </motion.div>
     </main>
   );
