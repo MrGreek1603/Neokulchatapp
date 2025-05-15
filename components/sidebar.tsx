@@ -233,17 +233,15 @@ export function Sidebar() {
         frienderId: user.id,
         friendeeId: friendId,
       });
-      // After successfully adding a friend, refresh the friends list and close the popup
-      fetchFriendsAndGroups();
-      setShowFriendPopup(false);
+      await fetchFriendsAndGroups(); // Refresh state
+      setShowFriendPopup(false); // Close the dialog
       setSearchResults(null);
       setFriendQuery("");
-      // Optionally provide feedback to the user (e.g., a toast notification)
     } catch (error) {
       console.log("Error adding friend:", error);
-      // Optionally handle error display to the user
     }
   };
+  
   const handleRequestJoinGroup = async (groupInviteCode: string) => {
     if (!user) return;
     try {
@@ -251,47 +249,67 @@ export function Sidebar() {
         groupInviteCode,
         userId: user.id,
       });
+      await fetchFriendsAndGroups(); // Refresh state
+      setShowGroupPopup(false); // Close the dialog
+      setGroupId("");
     } catch (error) {
-      console.log("Error adding friend:", error);
+      console.log("Error joining group:", error);
     }
   };
-
+  
   const toggleSelect = (id: string) => {
     setSelectedFriendsForNewGroup((prev) =>
       prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id],
     );
   };
 
-  const handleCreateNewGroup = () => {
+  const handleCreateNewGroup = async () => {
     if (!user) return;
     try {
-      axios.post("/api/groups/create", {
+      await axios.post("/api/groups/create", {
         users: selectedFriendsForNewGroup,
         groupName: newGroupName,
         userId: user.id,
         visibility: newGroupVisibility,
       });
+      await fetchFriendsAndGroups(); // Refresh state
+      setShowGroupPopup(false); // Close the dialog
+      setNewGroupName("");
+      setSelectedFriendsForNewGroup([]);
     } catch (error) {
       console.log("Error creating group:", error);
     }
   };
+  
 
-  const handleAccept = (friendId: string) => {
+  const handleAccept = async (friendId: string) => {
     if (!user) return;
-    axios.post("/api/friends/accept", {
-      friendId,
-      userId: user.id,
-      action: "accept",
-    });
+    try {
+      await axios.post("/api/friends/accept", {
+        friendId,
+        userId: user.id,
+        action: "accept",
+      });
+      await fetchFriendsAndGroups(); // Refresh state
+    } catch (error) {
+      console.log("Error accepting friend request:", error);
+    }
   };
-  const handleReject = (friendId: string) => {
+  
+  const handleReject = async (friendId: string) => {
     if (!user) return;
-    axios.post("/api/friends/accept", {
-      friendId,
-      userId: user.id,
-      action: "reject",
-    });
+    try {
+      await axios.post("/api/friends/accept", {
+        friendId,
+        userId: user.id,
+        action: "reject",
+      });
+      await fetchFriendsAndGroups(); // Refresh state
+    } catch (error) {
+      console.log("Error rejecting friend request:", error);
+    }
   };
+  
   return (
     <>
       {/* Sidebar */}
