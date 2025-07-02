@@ -1,5 +1,4 @@
 "use client";
-
 import Link from "next/link";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -67,7 +66,8 @@ export default function Home() {
             The Future of Discussion is Here
           </h1>
           <p className="mt-6 text-lg md:text-xl text-gray-400">
-            Create communities, discuss ideas, and collaborate like never before.
+            Create communities, discuss ideas, and collaborate like never
+            before.
           </p>
           <div className="mt-8 flex justify-center gap-4">
             <Link
@@ -141,9 +141,15 @@ export default function Home() {
             <span>© 2025 Neokul ChatForum. All rights reserved.</span>
           </div>
           <div className="flex gap-4">
-            <Link href="#" className="hover:underline">Privacy</Link>
-            <Link href="#" className="hover:underline">Terms</Link>
-            <Link href="#" className="hover:underline">Contact</Link>
+            <Link href="#" className="hover:underline">
+              Privacy
+            </Link>
+            <Link href="#" className="hover:underline">
+              Terms
+            </Link>
+            <Link href="#" className="hover:underline">
+              Contact
+            </Link>
           </div>
         </div>
       </footer>
