@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/components/auth/auth-provider";
+import { useRouter } from "next/navigation";
 
 interface GroupMember {
   id: string;
@@ -49,6 +50,7 @@ interface Invite {
   usedCount: number;
 }
 export default function GroupMembersPage({ params }: PageParams) {
+  const router = useRouter();
   const { user } = useAuth();
   const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
   const [groupPendingMembers, setGroupPendingMembers] = useState<GroupMember[]>(
@@ -163,6 +165,7 @@ export default function GroupMembersPage({ params }: PageParams) {
         duration: "1",
         maxUses: 1,
       });
+      router.refresh();
     } catch (error) {
       console.error("Error creating invite:", error);
     }
