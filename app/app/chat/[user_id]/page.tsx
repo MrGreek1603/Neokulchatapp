@@ -8,6 +8,15 @@ import { useAuth } from "@/components/auth/auth-provider";
 import { motion, AnimatePresence } from "framer-motion";
 import { parseISO, format } from "date-fns";
 import { useRouter } from "next/navigation";
+import { Forward } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export default function PrivateChatsPage({
   params,
@@ -59,7 +68,6 @@ export default function PrivateChatsPage({
       setChats((prev) => [...(prev ?? []), data]);
       setLastUpdated(Date.now());
     };
-
     return () => eventSource.close();
   }, [commonChatId, user]);
 
@@ -239,13 +247,29 @@ export default function PrivateChatsPage({
                     {chat.chatFrom.name}
                   </div>
                 )}
-                <div className="text-sm break-words whitespace-pre-wrap">
+                <div className="text-sm break-words whitespace-pre-wrap relative">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <button className="absolute aspect-square w-8 h-8 bg-slate-800/30 backdrop-blur-md -right-8 rounded-full grid place-items-center">
+                        <Forward className="text-xs w-4" />
+                      </button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Forward Message</DialogTitle>
+                      </DialogHeader>
+                      
+                      
+                    </DialogContent>
+                  </Dialog>
+
                   <div>
                     <img
                       className="max-w-[32rem] max-h-96 rounded-xl rounded-lg mb-2 "
                       src={chat.attachment}
                     />
                   </div>
+
                   {chat.message}
                 </div>
                 <div className="text-[10px] text-right text-gray-500 mt-1">
