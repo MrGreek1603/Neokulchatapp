@@ -28,6 +28,7 @@ import { useRouter } from "next/navigation";
 interface GroupMember {
   id: string;
   name: string;
+  role: "admin" | "user";
 }
 
 interface PageParams {
@@ -264,7 +265,8 @@ export default function GroupMembersPage({ params }: PageParams) {
       <section className="mb-6">
         <h2 className="text-2xl font-semibold mb-4">Approved Members</h2>
         <ul className="list-none p-0">
-          {groupMembers.length > 0 ? (
+          {groupMembers.findLast((x) => x.id == user?.id)?.role === "admin" &&
+          groupMembers.length > 0 ? (
             groupMembers.map((member) => (
               <li key={member.id} className="mb-2 text-lg">
                 {member.name}{" "}
