@@ -17,6 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { createClient } from "@/lib/supabase/client";
 
 export default function PrivateChatsPage({
   params,
@@ -112,6 +113,7 @@ export default function PrivateChatsPage({
   }, [chatID, user, isGroup]);
 
   const sendMessage = async () => {
+    if (!user) return;
     if (!newMessage.trim() && !selectedFile) return;
 
     const payload: any = {
@@ -121,36 +123,39 @@ export default function PrivateChatsPage({
     };
 
     if (selectedFile) {
-      // Convert file to base64 using FileReader
-      const reader = new FileReader();
-
-      reader.onloadend = async () => {
-        const base64Image = reader.result as string; // This is the base64 string
-        payload.attachment = base64Image;
-
+      try {
+        const supabase = createClient();
+        const filePath = `${user.id}/${Date.now()}_${selectedFile.name}`;
+        const { data, error } = await supabase.storage
+          .from("attachments")
+          .upload(filePath, selectedFile, { upsert: true });
+        if (error) {
+          console.error('Supabase upload error:', error);
+          throw error;
+        }
+        const { data: publicUrlData } = supabase.storage
+          .from("attachments")
+          .getPublicUrl(filePath);
+        payload.attachment = publicUrlData.publicUrl;
         await axios.post("/api/chat", payload);
-
-        // Send real-time stream data if required
         await axios.put("/api/stream", {
           chatId: commonChatId,
           message: JSON.stringify({
             id: crypto.randomUUID(),
             message: newMessage,
-            attachment: base64Image,
+            attachment: publicUrlData.publicUrl,
             createdAt: new Date().toISOString(),
             chatFrom: { id: user!.id, name: user!.new_email },
           }),
         });
-
         setNewMessage("");
-        setSelectedFile(null); // Clear the file after sending
+        setSelectedFile(null);
         inputRef.current?.focus();
-      };
-
-      // Read the selected file as a Data URL (Base64)
-      reader.readAsDataURL(selectedFile);
+      } catch (err) {
+        console.error('File upload error:', err);
+        alert("File upload failed");
+      }
     } else {
-      // No file, just send the message
       await axios.post("/api/chat", payload);
       await axios.put("/api/stream", {
         chatId: commonChatId,
@@ -162,7 +167,6 @@ export default function PrivateChatsPage({
           chatFrom: { id: user!.id, name: user!.new_email },
         }),
       });
-
       setNewMessage("");
     }
   };
@@ -175,14 +179,8 @@ export default function PrivateChatsPage({
   };
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files ? e.target.files[0] : null;
-
     if (file) {
-      // Check if the file is an image and its size is <= 10MB
-      if (!file.type.startsWith("image/")) {
-        alert("Only image files are allowed.");
-        setSelectedFile(null);
-      } else if (file.size > 10 * 1024 * 1024) {
-        // 10MB = 10 * 1024 * 1024 bytes
+      if (file.size > 10 * 1024 * 1024) {
         alert("File size must be less than 10MB.");
         setSelectedFile(null);
       } else {
@@ -264,10 +262,25 @@ export default function PrivateChatsPage({
                   </Dialog>
 
                   <div>
-                    <img
-                      className="max-w-[32rem] max-h-96 rounded-xl rounded-lg mb-2 "
-                      src={chat.attachment}
-                    />
+                    {chat.attachment && (
+                      /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(chat.attachment)
+                        ? (
+                          <img
+                            className="max-w-[32rem] max-h-96 rounded-xl rounded-lg mb-2"
+                            src={chat.attachment}
+                            alt="attachment"
+                          />
+                        ) : (
+                          <a
+                            href={chat.attachment}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-500 underline"
+                          >
+                            Download Attachment
+                          </a>
+                        )
+                    )}
                   </div>
 
                   {chat.message}
@@ -283,7 +296,7 @@ export default function PrivateChatsPage({
             <span>
               👋 Say hi!
               <br />
-              It’s suspiciously quiet here...
+              It's suspiciously quiet here...
             </span>
           </div>
         )}
@@ -296,11 +309,15 @@ export default function PrivateChatsPage({
             <div className="text-xs text-gray-500 mt-1">
               {selectedFile && (
                 <>
-                  <img
-                    src={URL.createObjectURL(selectedFile)}
-                    alt="Preview"
-                    className="mt-2 w-32 h-32 object-cover rounded"
-                  />
+                  {selectedFile.type.startsWith("image/") ? (
+                    <img
+                      src={URL.createObjectURL(selectedFile)}
+                      alt="Preview"
+                      className="mt-2 w-32 h-32 object-cover rounded"
+                    />
+                  ) : (
+                    <span className="mt-2 block">{selectedFile.name}</span>
+                  )}
                 </>
               )}
             </div>
@@ -310,7 +327,6 @@ export default function PrivateChatsPage({
             <input
               type="file"
               onChange={handleFileChange}
-              accept="image/*"
               className="hidden"
             />
           </label>
