@@ -24,6 +24,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/components/auth/auth-provider";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { format, isAfter, isBefore } from "date-fns";
+import { toast } from "sonner";
 
 interface GroupMember {
   id: string;
@@ -59,6 +62,19 @@ export default function GroupMembersPage({ params }: PageParams) {
   );
 
   const [activeInvites, setActiveInvites] = useState<Invite[]>([]);
+
+  const [myFriends, setMyFriends] = useState<
+    | {
+        friendId: string;
+        friendName: string;
+        friendEmail: string;
+        friendCreatedAt: string;
+        friendDisplayPicture: string | null;
+        from: string;
+        requestStatus: "pending" | "accepted" | "rejected";
+      }[]
+    | null
+  >(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [inviteFormData, setInviteFormData] = useState<InviteFormData>({
     duration: "1",
@@ -66,6 +82,15 @@ export default function GroupMembersPage({ params }: PageParams) {
   });
 
   const groupId = params.user_id.replace("GPXX_", "").replace("_GPXX", "");
+
+  useEffect(() => {
+    if (!user) return;
+    axios
+      .get("/api/friends", {
+        params: { userId: user.id },
+      })
+      .then((resp) => setMyFriends(resp.data));
+  }, [user]);
 
   useEffect(() => {
     const fetchGroupMembers = async () => {
@@ -166,7 +191,11 @@ export default function GroupMembersPage({ params }: PageParams) {
         duration: "1",
         maxUses: 1,
       });
-      router.refresh();
+      navigator.clipboard.writeText(response.data.code);
+      toast.success("Invite Copied To Clipboard");
+      axios
+        .get("/api/groups/invite", { params: { groupId } })
+        .then((resp) => setActiveInvites(resp.data));
     } catch (error) {
       console.error("Error creating invite:", error);
     }
@@ -180,6 +209,14 @@ export default function GroupMembersPage({ params }: PageParams) {
     } catch (error) {
       console.error("Error kicking user:", error);
     }
+  };
+  const sendMessage = (friendID: string, message: string) => {
+    const payload: any = {
+      userId: user?.id,
+      message: message,
+      chatWith: friendID,
+    };
+    axios.post("/api/chat", payload).then((d) => console.log(d.data));
   };
   return (
     <main className="p-6 font-sans mx-auto max-w-5xl">
@@ -249,10 +286,68 @@ export default function GroupMembersPage({ params }: PageParams) {
         INVITES
         {activeInvites && activeInvites.length > 0 ? (
           activeInvites.map((invite) => (
-            <div key={invite.code} className="p-4 border rounded-md">
+            <div
+              key={invite.code}
+              className={cn(
+                "p-4 border rounded-md",
+                isBefore(invite.expiresAt, new Date())
+                  ? "opacity-20 pointer-events-none select-none"
+                  : "",
+              )}
+            >
               <p>Code: {invite.code}</p>
-              <p>Expires at: {new Date(invite.expiresAt).toLocaleString()}</p>
+              <p>
+                Expires at: {format(new Date(invite.expiresAt), "dd MMMM yyyy")}
+              </p>
               <p>Max Uses: {invite.maxUses}</p>
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline">Share</Button>
+                </DialogTrigger>
+                <DialogContent onOpenAutoFocus={(e) => e.preventDefault()}>
+                  <DialogHeader>
+                    <DialogTitle className="text-left">
+                      Share The Link
+                    </DialogTitle>
+                    <DialogDescription className="text-left">
+                      Share{" "}
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <div className="grid gap-4 py-4">
+                    {myFriends
+                      ?.filter(
+                        (x) =>
+                          !groupMembers.map((x) => x.id).includes(x.friendId),
+                      )
+                      ?.map((x) => (
+                        <div key={x.friendId}>
+                          {x.friendName}{" "}
+                          <Button
+                            onClick={() =>
+                              sendMessage(
+                                x.friendId,
+                                "Join With this code " + invite.code,
+                              )
+                            }
+                          >
+                            Send
+                          </Button>
+                        </div>
+                      ))}
+                  </div>
+
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsDialogOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button>Done</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
           ))
         ) : (
