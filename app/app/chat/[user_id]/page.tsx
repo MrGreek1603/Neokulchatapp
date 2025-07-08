@@ -49,7 +49,27 @@ export default function PrivateChatsPage({
   const [friend, setFriend] = useState<any | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [myFriends, setMyFriends] = useState<
+    | {
+        friendId: string;
+        friendName: string;
+        friendEmail: string;
+        friendCreatedAt: string;
+        friendDisplayPicture: string | null;
+        from: string;
+        requestStatus: "pending" | "accepted" | "rejected";
+      }[]
+    | null
+  >(null);
 
+  useEffect(() => {
+    if (!user) return;
+    axios
+      .get("/api/friends", {
+        params: { userId: user.id },
+      })
+      .then((resp) => setMyFriends(resp.data));
+  }, [user]);
   useEffect(() => {
     if (!user) return;
     if (isGroup) {
@@ -112,6 +132,14 @@ export default function PrivateChatsPage({
       .then((resp) => setFriend(resp.data));
   }, [chatID, user, isGroup]);
 
+  const forwardMessage = (friendID: string, message: string) => {
+    const payload: any = {
+      userId: user?.id,
+      message: message,
+      chatWith: friendID,
+    };
+    axios.post("/api/chat", payload).then((d) => console.log(d.data));
+  };
   const sendMessage = async () => {
     if (!user) return;
     if (!newMessage.trim() && !selectedFile) return;
@@ -256,8 +284,20 @@ export default function PrivateChatsPage({
                       <DialogHeader>
                         <DialogTitle>Forward Message</DialogTitle>
                       </DialogHeader>
-                      
-                      
+                      <div>
+                        {myFriends?.map((x) => (
+                          <div key={x.friendId}>
+                            {x.friendName}{" "}
+                            <Button
+                              onClick={() =>
+                                forwardMessage(x.friendId, chat.message)
+                              }
+                            >
+                              forward Message
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
                     </DialogContent>
                   </Dialog>
 
